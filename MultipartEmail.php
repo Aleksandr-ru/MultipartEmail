@@ -7,6 +7,7 @@
 * @version 1.0.1 01.10.2013 ('\r\n' replaced with '\n' when building message)
 * @version 1.0.2 06.03.2015 ($add_cid parameter added, html parsing for cid src, 'multipart/related' header in case of embedded images)
 * @version 1.0.3 22.09.2015 (added $charset parameter to constructor for non utf8 usage)
+* @version 1.0.4 25.12.2017 (added CSS "url('image.ext')" replacement with attachement CID)
 */
 class MultipartEmail
 {
@@ -239,6 +240,8 @@ class MultipartEmail
 				$this->attachements[$i]['cid'] = uniqid('MPM-cid-');
 				$this->html = preg_replace("/src=(['\"]{0,1})".addslashes($this->attachements[$i]['name'])."(['\"]{0,1})/i", 
 										   "src=$1cid:{$this->attachements[$i]['cid']}$2", $this->html);
+				$this->html = preg_replace("/url\((['\"]{0,1})".addslashes($this->attachements[$i]['name'])."(['\"]{0,1})\)/i",
+										   "url(cid:{$this->attachements[$i]['cid']})", $this->html);
 				$related = true;
 			}
 		}
