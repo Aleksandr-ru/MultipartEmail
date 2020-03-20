@@ -1,14 +1,15 @@
 <?php
 
 /**
-* PHP Multipart Mailer
-* @author Rebel http://www.aleksandr.ru
-* @version 1.0   18.04.2012
-* @version 1.0.1 01.10.2013 ('\r\n' replaced with '\n' when building message)
-* @version 1.0.2 06.03.2015 ($add_cid parameter added, html parsing for cid src, 'multipart/related' header in case of embedded images)
-* @version 1.0.3 22.09.2015 (added $charset parameter to constructor for non utf8 usage)
-* @version 1.0.4 25.12.2017 (added CSS "url('image.ext')" replacement with attachement CID)
-*/
+ * PHP Multipart Mailer
+ * @author Rebel http://www.aleksandr.ru
+ * @version 1.0   18.04.2012
+ * @version 1.0.1 01.10.2013 ('\r\n' replaced with '\n' when building message)
+ * @version 1.0.2 06.03.2015 ($add_cid parameter added, html parsing for cid src, 'multipart/related' header in case of embedded images)
+ * @version 1.0.3 22.09.2015 (added $charset parameter to constructor for non utf8 usage)
+ * @version 1.0.4 25.12.2017 (added CSS "url('image.ext')" replacement with attachement CID)
+ * @version 1.0.5 20.03.2020 (added backtrace and optional exception for send errors)
+ */
 class MultipartEmail
 {
 	protected $charset = 'UTF-8';
@@ -218,14 +219,20 @@ class MultipartEmail
 	}
 	
 	/**
-	* send mail
-	* 
-	* @return bool
-	*/
-	function send()
+	 * send mail
+     * @param bool $throw_exception in case of empty TO
+	 *
+	 * @return bool
+     * @throws Exception
+	 */
+	function send($throw_exception = false)
 	{
 		if(!$this->to) {
-			trigger_error("Send failed, TO is empty!", E_USER_WARNING);
+            $e = new Exception("Send failed, TO is empty!");
+            if($throw_exception) {
+                throw $e;
+            }
+			trigger_error($e->getMessage() . " Trace:\n" . $e->getTraceAsString(), E_USER_WARNING);
 			return false;
 		}
 
@@ -334,5 +341,3 @@ class MultipartEmail
 		else return iconv($this->charset, 'UTF-8', $str);
 	}
 }
-
-?>
