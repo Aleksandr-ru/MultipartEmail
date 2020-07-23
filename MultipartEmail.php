@@ -9,6 +9,7 @@
  * @version 1.0.3 22.09.2015 (added $charset parameter to constructor for non utf8 usage)
  * @version 1.0.4 25.12.2017 (added CSS "url('image.ext')" replacement with attachement CID)
  * @version 1.0.5 20.03.2020 (added backtrace and optional exception for send errors)
+ * @version 1.0.6 23.07.2020 (image CID fix when send multiple times)
  */
 class MultipartEmail
 {
@@ -158,7 +159,7 @@ class MultipartEmail
 		$this->attachements[$this->att_counter]['data'] = $file_is_data ? $file : file_get_contents($file);
 		$this->attachements[$this->att_counter]['mime_type'] = $mime_type;
 		$this->attachements[$this->att_counter]['name'] = $name;
-		$this->attachements[$this->att_counter]['cid'] = $add_cid;
+		$this->attachements[$this->att_counter]['cid'] = $add_cid ? uniqid('MPM-cid-') : null;
 		if(!$this->attachements[$this->att_counter]['data'] || !$this->attachements[$this->att_counter]['mime_type'] || !$this->attachements[$this->att_counter]['name']) {
 			unset($this->attachements[$this->att_counter]);
 			trigger_error("Failed to add an attachement!", E_USER_WARNING);
@@ -236,19 +237,20 @@ class MultipartEmail
 			return false;
 		}
 
-		$multipart = ($this->html || sizeof($this->attachements));
+        $html = $this->html;
+
+		$multipart = ($html || sizeof($this->attachements));
 		$related   = false; // default i.e. no embedded images in html
 		
 		$boundary_part = uniqid('MPM-part-');
 		$boundary_alt = uniqid('MPM-alt-');
-		
-		if($this->html && sizeof($this->attachements)) {
-			foreach($this->attachements as $i=>$a) if($a['cid'] && preg_match("/^image/", $a['mime_type'])) {
-				$this->attachements[$i]['cid'] = uniqid('MPM-cid-');
-				$this->html = preg_replace("/src=(['\"]{0,1})".addslashes($this->attachements[$i]['name'])."(['\"]{0,1})/i", 
-										   "src=$1cid:{$this->attachements[$i]['cid']}$2", $this->html);
-				$this->html = preg_replace("/url\((['\"]{0,1})".addslashes($this->attachements[$i]['name'])."(['\"]{0,1})\)/i",
-										   "url(cid:{$this->attachements[$i]['cid']})", $this->html);
+
+        if($html && sizeof($this->attachements)) {
+			foreach($this->attachements as $i => $a) if($a['cid'] && preg_match("/^image/", $a['mime_type'])) {
+				$html = preg_replace("/src=(['\"]?)".addslashes($this->attachements[$i]['name'])."(['\"]?)/i",
+										   "src=$1cid:{$this->attachements[$i]['cid']}$2", $html);
+				$html = preg_replace("/url\((['\"]?)".addslashes($this->attachements[$i]['name'])."(['\"]?)\)/i",
+										   "url(cid:{$this->attachements[$i]['cid']})", $html);
 				$related = true;
 			}
 		}
@@ -289,7 +291,7 @@ class MultipartEmail
 
 		if(!$multipart) {
 			$message .= chunk_split(base64_encode($this->text))."\n";
-		} elseif($this->text && $this->html) {
+		} elseif($this->text && $html) {
 			$message .= "--$boundary_part\n";
 			$message .= "Content-Type: multipart/alternative; boundary=\"$boundary_alt\"\n\n";
 
@@ -298,17 +300,16 @@ class MultipartEmail
 			$message .= chunk_split(base64_encode($this->text))."\n";
 			$message .= "--$boundary_alt\n";
 			$message .= "Content-Type: text/html; charset={$this->charset}\nContent-Transfer-Encoding: base64\n\n";
-			$message .= chunk_split(base64_encode($this->html))."\n";
+			$message .= chunk_split(base64_encode($html))."\n";
 			$message .= "--$boundary_alt--\n\n";
-
 		} elseif($this->text) {
 			$message .= "--$boundary_part\n";
 			$message .= "Content-Type: text/plain; charset={$this->charset}\nContent-Transfer-Encoding: base64\n\n";
 			$message .= chunk_split(base64_encode($this->text))."\n";
-		} elseif($this->html) {
+		} elseif($html) {
 			$message .= "--$boundary_part\n";
 			$message .= "Content-Type: text/html; charset={$this->charset}\nContent-Transfer-Encoding: base64\n\n";
-			$message .= chunk_split(base64_encode($this->html))."\n";
+			$message .= chunk_split(base64_encode($html))."\n";
 		}
 		
 		/* attachements */
