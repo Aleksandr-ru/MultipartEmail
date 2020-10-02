@@ -1,0 +1,28 @@
+{
+  "name": "aleksandr.ru/multipart-email",
+  "type": "library",
+  "description": "Multiprt email sender",
+  "keywords": ["email", "multipart", "related", "alternative"],
+  "homepage": "https://github.com/Aleksandr-ru/MultipartEmail",
+  "license": "MIT",
+  "authors": [
+    {
+      "name": "Aleksandr.ru",
+      "email": "aleksandr@aleksandr.ru",
+      "homepage": "http://aleksandr.ru",
+      "role": "Developer"
+    }
+  ],
+  "support": {
+    "issues": "https://github.com/Aleksandr-ru/MultipartEmail/issues"
+  },
+  "require": {
+    "php": ">=5.3.0",
+    "ext-iconv": "*"
+  },
+  "autoload": {
+    "psr-0": {
+      "MultipartEmail": ""
+    }
+  }
+}

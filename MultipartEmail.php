@@ -2,14 +2,15 @@
 
 /**
  * PHP Multipart Mailer
- * @author Rebel http://www.aleksandr.ru
+ * @author Aleksandr http://www.aleksandr.ru
  * @version 1.0   18.04.2012
  * @version 1.0.1 01.10.2013 ('\r\n' replaced with '\n' when building message)
  * @version 1.0.2 06.03.2015 ($add_cid parameter added, html parsing for cid src, 'multipart/related' header in case of embedded images)
  * @version 1.0.3 22.09.2015 (added $charset parameter to constructor for non utf8 usage)
- * @version 1.0.4 25.12.2017 (added CSS "url('image.ext')" replacement with attachement CID)
+ * @version 1.0.4 25.12.2017 (added CSS "url('image.ext')" replacement with attachment CID)
  * @version 1.0.5 20.03.2020 (added backtrace and optional exception for send errors)
  * @version 1.0.6 23.07.2020 (image CID fix when send multiple times)
+ * @version 1.0.7 02.10.2020 (composer support)
  */
 class MultipartEmail
 {
@@ -19,7 +20,7 @@ class MultipartEmail
 	protected $from;
 	protected $to;
 	protected $subject;
-	protected $attachements = array();
+	protected $attachments = array();
 	protected $headers = array();
 
 	private $att_counter = 0;
@@ -156,12 +157,12 @@ class MultipartEmail
 	function addAttachement($file, $mime_type, $name, $file_is_data = false, $add_cid = false)
 	{
 		$this->att_counter++;
-		$this->attachements[$this->att_counter]['data'] = $file_is_data ? $file : file_get_contents($file);
-		$this->attachements[$this->att_counter]['mime_type'] = $mime_type;
-		$this->attachements[$this->att_counter]['name'] = $name;
-		$this->attachements[$this->att_counter]['cid'] = $add_cid ? uniqid('MPM-cid-') : null;
-		if(!$this->attachements[$this->att_counter]['data'] || !$this->attachements[$this->att_counter]['mime_type'] || !$this->attachements[$this->att_counter]['name']) {
-			unset($this->attachements[$this->att_counter]);
+		$this->attachments[$this->att_counter]['data'] = $file_is_data ? $file : file_get_contents($file);
+		$this->attachments[$this->att_counter]['mime_type'] = $mime_type;
+		$this->attachments[$this->att_counter]['name'] = $name;
+		$this->attachments[$this->att_counter]['cid'] = $add_cid ? uniqid('MPM-cid-') : null;
+		if(!$this->attachments[$this->att_counter]['data'] || !$this->attachments[$this->att_counter]['mime_type'] || !$this->attachments[$this->att_counter]['name']) {
+			unset($this->attachments[$this->att_counter]);
 			trigger_error("Failed to add an attachement!", E_USER_WARNING);
 			return false;
 		}
@@ -176,8 +177,8 @@ class MultipartEmail
 	*/
 	function removeAttachement($id)
 	{
-		if(isset($this->attachements[$id])) {
-			unset($this->attachements[$id]);
+		if(isset($this->attachments[$id])) {
+			unset($this->attachments[$id]);
 			return true;
 		} else {
 			trigger_error("Attachement not found");
@@ -239,18 +240,18 @@ class MultipartEmail
 
         $html = $this->html;
 
-		$multipart = ($html || sizeof($this->attachements));
+		$multipart = ($html || sizeof($this->attachments));
 		$related   = false; // default i.e. no embedded images in html
 		
 		$boundary_part = uniqid('MPM-part-');
 		$boundary_alt = uniqid('MPM-alt-');
 
-        if($html && sizeof($this->attachements)) {
-			foreach($this->attachements as $i => $a) if($a['cid'] && preg_match("/^image/", $a['mime_type'])) {
-				$html = preg_replace("/src=(['\"]?)".addslashes($this->attachements[$i]['name'])."(['\"]?)/i",
-										   "src=$1cid:{$this->attachements[$i]['cid']}$2", $html);
-				$html = preg_replace("/url\((['\"]?)".addslashes($this->attachements[$i]['name'])."(['\"]?)\)/i",
-										   "url(cid:{$this->attachements[$i]['cid']})", $html);
+        if($html && sizeof($this->attachments)) {
+			foreach($this->attachments as $i => $a) if($a['cid'] && preg_match("/^image/", $a['mime_type'])) {
+				$html = preg_replace("/src=(['\"]?)".addslashes($this->attachments[$i]['name'])."(['\"]?)/i",
+										   "src=$1cid:{$this->attachments[$i]['cid']}$2", $html);
+				$html = preg_replace("/url\((['\"]?)".addslashes($this->attachments[$i]['name'])."(['\"]?)\)/i",
+										   "url(cid:{$this->attachments[$i]['cid']})", $html);
 				$related = true;
 			}
 		}
@@ -314,7 +315,7 @@ class MultipartEmail
 		
 		/* attachements */
 
-		foreach($this->attachements as $att) {
+		foreach($this->attachments as $att) {
 			$att['name'] = "=?UTF-8?B?".base64_encode($this->toUTF8($att['name']))."?=";
 
 			$message .= "--$boundary_part\n";
