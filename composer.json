@@ -1,7 +1,7 @@
 {
   "name": "aleksandr.ru/multipart-email",
   "type": "library",
-  "description": "Multiprt email sender",
+  "description": "Multipart email sender",
   "keywords": ["email", "multipart", "related", "alternative"],
   "homepage": "https://github.com/Aleksandr-ru/MultipartEmail",
   "license": "MIT",
