@@ -10,6 +10,12 @@ Emails is sent by built-in mail() function, no direct connection to SMTP server 
 
 See example below.
 
+Also available via composer:
+
+```
+composer require aleksandr.ru/multipart-email
+```
+
 ## MultipartEmail (ru)
 
 Максимально простой класс для отправки почты с вложениями на PHP. Возможности:
