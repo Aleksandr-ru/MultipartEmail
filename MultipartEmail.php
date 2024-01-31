@@ -13,10 +13,11 @@
  * @version 1.0.6 23.07.2020 (image CID fix when send multiple times)
  * @version 1.0.7 02.10.2020 (composer support)
  * @version 1.1   09.09.2022 (named headers and reply-to feature)
+ * @version 1.1.1 29.02.2023 (email regexp allows absence of space between name and address)
  */
 class MultipartEmail
 {
-    const EMAIL_REGEXP = "/^(.+) <(.+\@.+)>$/i";
+    const EMAIL_REGEXP = "/^(.+)\s*<(.+\@.+)>$/i";
 
 	protected $charset = 'UTF-8';
 	protected $text;
