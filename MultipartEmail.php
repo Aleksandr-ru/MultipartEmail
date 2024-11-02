@@ -14,6 +14,7 @@
  * @version 1.0.7 02.10.2020 (composer support)
  * @version 1.1   09.09.2022 (named headers and reply-to feature)
  * @version 1.1.1 29.02.2023 (email regexp allows absence of space between name and address)
+ * @version 1.1.2 02.11.2024 (php8 hotfix: message must starts with '\n')
  */
 class MultipartEmail
 {
@@ -401,6 +402,10 @@ class MultipartEmail
 		} 
 		
 		if($multipart) $message .= "--$boundary_part--\n\n";
+
+        //TODO: bug? since php8 $message must starts with a newline
+        // otherwise email will be send with empty body
+        if (PHP_MAJOR_VERSION > 7) $message = "\n" . $message;
 
 		return mail($to, $subject, $message, $headers);
 	}
