@@ -15,18 +15,19 @@
  * @version 1.1   09.09.2022 (named headers and reply-to feature)
  * @version 1.1.1 29.02.2023 (email regexp allows absence of space between name and address)
  * @version 1.1.2 02.11.2024 (php8 hotfix: message must starts with '\n')
+ * @version 1.1.3 05.11.2024 (fixed trim nulls deprecation)
  */
 class MultipartEmail
 {
     const EMAIL_REGEXP = "/^(.+)\s*<(.+\@.+)>$/i";
 
 	protected $charset = 'UTF-8';
-	protected $text;
-	protected $html;
-	protected $from;
-	protected $to;
-    protected $reply_to;
-	protected $subject;
+	protected $text = '';
+	protected $html = '';
+	protected $from = '';
+	protected $to = '';
+    protected $reply_to = '';
+	protected $subject = '';
 	protected $attachments = array();
 	protected $headers = array();
 
